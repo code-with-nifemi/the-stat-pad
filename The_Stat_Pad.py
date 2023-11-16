@@ -127,6 +127,17 @@ GUI['bg'] = colour_silver
 compare_player2player = BooleanVar()
 compare_player2average = BooleanVar()
 
+# Define function to allow switching between input fields using "Tab" key
+def switch_focus(event):
+
+    if event.widget == p1_selection:
+        p2_selection.focus_set()
+
+    elif event.widget == p2_selection:
+        p1_selection.focus_set()
+
+    return 'break'
+
 # Define function to perform data analysis
 
 def reset_data(player):
@@ -299,7 +310,7 @@ def compare_stats():
         
 
 # Define function to retreive and process statistics
-def analyse_stats():
+def analyse_stats(event = None):
     
     # Attempt the following:
     try:
@@ -309,7 +320,7 @@ def analyse_stats():
 
             option_error_message['text'] = '*Please select only one checkbox.'
             selection_error_message['text'] = ''
-            return
+            return 'break'
         else:
             option_error_message['text'] = ''
         
@@ -335,7 +346,7 @@ def analyse_stats():
             # Restore default data for Player 1
             reset_data(player = 1)
 
-            return          
+            return 'break'          
             
         # At this point in the program, valid input for Player 1 has been confirmed
         else:
@@ -371,7 +382,7 @@ def analyse_stats():
                 # Restore default data for Player 1
                 reset_data(player = 1)
                 
-                return
+                return 'break'
 
             # At this point in the program, data has been successfully retrieved for Player 1
             # The program will proceed to assess user input for Player 2
@@ -386,7 +397,7 @@ def analyse_stats():
                     # Restore default data for Player 2
                     reset_data(player = 2)
                     
-                    return
+                    return 'break'
                 
                 # Check if Player 2's full name is entered -- display error message if not
                 elif len(p2_name.split()) < 2:
@@ -397,7 +408,7 @@ def analyse_stats():
                     # Restore default data for Player 2
                     reset_data(player = 2)
                     
-                    return
+                    return 'break'
                 
                 # At this point in the program, valid input for Player 2 has been confirmed
                 else:
@@ -424,7 +435,7 @@ def analyse_stats():
                         RPG2_details['fg'] = 'black'
                         APG2_details['fg'] = 'black'
 
-                        return
+                        return 'break'
 
 
                     # Display error message and restore default data as statistics cannot be retrieved for user input
@@ -436,7 +447,7 @@ def analyse_stats():
                         # Restore default data for Player 2
                         reset_data(player = 2)
                         
-                        return                  
+                        return 'break'                  
 
             else:
 
@@ -453,7 +464,7 @@ def analyse_stats():
                         # Restore default data for Player 2
                         reset_data(player = 2)
                         
-                        return
+                        return 'break'
                     
                     else:
                         
@@ -488,7 +499,7 @@ def analyse_stats():
                             # Restore default data for Player 2
                             reset_data(player = 2)
                             
-                            return  
+                            return 'break'  
 
                 # Do the following in the case that the second checkbutton is selected
                 elif compare_player2average.get():
@@ -526,12 +537,12 @@ def analyse_stats():
                         # Restore default data for Player 2
                         reset_data(player = 2)
                         
-                        return 
+                        return 'break' 
 
                 # Perform statistical comparison        
                 compare_stats()
                 
-                return   
+                return 'break'   
         
     # Do the following in the case of an exception
     # where none of the errors above are the case:
@@ -544,7 +555,7 @@ def analyse_stats():
         reset_data(player = 1)
         reset_data(player = 2)
         
-        return
+        return 'break'
 
 
 #----------------------------------------------------------------#
@@ -574,9 +585,13 @@ p2.grid(padx = 20, pady = 5, row = 2, column = 1)
 # Create and display text entry fields for each player
 p1_selection = Text(p1, width = 30, height = 1, font = search_font)
 p1_selection.grid(padx = 5, pady = 5, row = 1, column = 3, columnspan = 2)
+p1_selection.bind("<Tab>", switch_focus)
+p1_selection.bind("<Return>", analyse_stats)
 
 p2_selection = Text(p2, width = 30, height = 1, font = search_font)
 p2_selection.grid(padx = 5, pady = 5, row = 1, column = 3, columnspan = 2)
+p2_selection.bind("<Tab>", switch_focus)
+p2_selection.bind("<Return>", analyse_stats)
 
 
 # Create and display 'Options' LabelFrame to contain user's options
@@ -588,6 +603,7 @@ Options.grid(padx = 5, pady = 5, row = 3, column = 1)
 Analyse = Button(Selection, text = 'Analyse', command = analyse_stats, font = search_font, activeforeground = 'white', \
                  activebackground = colour_blue)
 Analyse.grid(padx = 5, pady = (5, 5), row = 3, column = 1)
+
 
 
 # Create and display Checkbutton to provide option of comparing players

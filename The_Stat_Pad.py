@@ -11,8 +11,6 @@ from urllib.request import urlopen
 
 # Some standard Tkinter functions.
 from tkinter import *
-from tkinter.scrolledtext import ScrolledText
-from tkinter.ttk import Progressbar
 
 # Functions for finding occurrences of a pattern defined
 # via a regular expression.
@@ -23,6 +21,8 @@ from re import *
 # distinguish it from the built-in "open" function for
 # opening local files).
 from webbrowser import open as urldisplay
+
+import unicodedata
 
 #---------------------------------------------#
 
@@ -101,445 +101,595 @@ def download(url = 'http://www.wikipedia.org/',
 
 #----------------------------------------------------------------#
 
-# Setup the window and add a title:
+# Setup the GUI window and add a title
 GUI = Tk()
-GUI.title('The Stat Pad - Stats in Seconds')
 GUI.resizable(width = False, height = False)
+GUI.title('The Stat Pad - Stats in Seconds')
 
-
-# Assign HEX values to required colours:
+# Create colour variables (hexadecimal)
 colour_blue = '#032F4F'
 colour_grey = '#333333'
 colour_silver = '#f9f9f9'
 
+# Create font variables
+labelframe_font = ('Signika', 15, 'bold')
+stats_font = ('Signika', 15)
+search_font_bold = ('Signika', 13, 'bold')
+search_font = ('Signika', 13)
+checkbutton_font = ('Signika', 12)
+error_font = ('Signika', 11)
+legend_font = ('Signika', 18, 'bold')
+
+# Configure GUI background colour
 GUI['bg'] = colour_silver
 
-# Define Variables:
-first_player_selection = StringVar()
-second_player_selection = StringVar()
-compare_player = BooleanVar()
-compare_player_average = BooleanVar()
+# Define checkbutton variables
+compare_player2player = BooleanVar()
+compare_player2average = BooleanVar()
 
+# Define function to perform data analysis
 
+def reset_data(player):
 
-# Define function to compare Player 1 data to Player 2 data:
-def compare_player_data():
-    if (compare_player_average.get() == True) or ((compare_player_average.get() == False) and (second_player_selection.get("1.0", "end-1c") != '' and not second_player_selection.get("1.0", "end-1c").isspace())):    
-        # Check if Player 1's PPG > Player 2's PPG, and highlight data accordingly:
-        if float(PPG1_details['text']) > float(PPG2_details['text']):
-            surplus = str(round(float(PPG1_details['text']) - float(PPG2_details['text']), 1))
-            PPG1_details['fg'] = 'green'
-            PPG2_details['fg'] = 'red'
-            PPG1_details['text'] += ' (+' + surplus + ')'
-        # Check if Player 1's PPG < Player 2's PPG, and highlight data accordingly:
-        elif float(PPG1_details['text']) < float(PPG2_details['text']):
-            surplus = str(round(float(PPG2_details['text']) - float(PPG1_details['text']), 1))
-            PPG1_details['fg'] = 'red'
-            PPG2_details['fg'] = 'green'
-            PPG2_details['text'] += ' (+' + surplus + ')'
-        else:
-            # Statistics are equal:
-            None
+    if player == 1:
 
-        # Check if Player 1's RPG > Player 2's RPG, and highlight data accordingly:
-        if float(RPG1_details['text']) > float(RPG2_details['text']):
-            surplus = str(round(float(RPG1_details['text']) - float(RPG2_details['text']), 1))
-            RPG1_details['fg'] = 'green'
-            RPG2_details['fg'] = 'red'
-            RPG1_details['text'] += ' (+' + surplus + ')'
-        # Check if Player 1's RPG < Player 2's RPG, and highlight data accordingly:
-        elif float(RPG1_details['text']) < float(RPG2_details['text']):
-            surplus = str(round(float(RPG2_details['text']) - float(RPG1_details['text']), 1))
-            RPG1_details['fg'] = 'red'
-            RPG2_details['fg'] = 'green'
-            RPG2_details['text'] += ' (+' + surplus + ')'
-        else:
-            # Statistics are equal:
-            None
-            
-        # Check if Player 1's APG > Player 2's APG, and highlight data accordingly:
-        if float(APG1_details['text']) > float(APG2_details['text']):
-            surplus = str(round(float(APG1_details['text']) - float(APG2_details['text']), 1))
-            APG1_details['fg'] = 'green'
-            APG2_details['fg'] = 'red'
-            APG1_details['text'] += ' (+' + surplus + ')'
-        # Check if Player 1's APG < Player 2's APG, and highlight data accordingly:
-        elif float(APG1_details['text']) < float(APG2_details['text']):
-            surplus = str(round(float(APG2_details['text']) - float(APG1_details['text']), 1))
-            APG1_details['fg'] = 'red'
-            APG2_details['fg'] = 'green'
-            APG2_details['text'] += ' (+' + surplus + ')'
-        else:
-            # Statistics are equal:
-            None
-    else:
-        # Check if 'Compare (Player vs NBA Average)' checkbox is disabled,
-        # and return error message if so, as 'Player 2' is required:
-        if compare_player_average.get() == False:
-            Error_message['text'] = "*Please enter the name of a\n player into 'Player 2.'"
+        P1_Label['text'] = '[Player 1]'
 
-            PPG1_details['fg'] = 'black'
-            RPG1_details['fg'] = 'black'
-            APG1_details['fg'] = 'black'
-
-            PPG2_details['fg'] = 'black'
-            RPG2_details['fg'] = 'black'
-            APG2_details['fg'] = 'black'
-
-# Define function to compare Player 1 data to NBA average:
-def compare_player_av():
-    # Check if 'Player 2' is left blank, and return error message if not:
-    if second_player_selection.get("1.0", "end-1c") != '' and not second_player_selection.get("1.0", "end-1c").isspace():
-        Error_message['text'] = "*Please leave 'Player 2' blank."
-        
         PPG1_details['fg'] = 'black'
         RPG1_details['fg'] = 'black'
         APG1_details['fg'] = 'black'
 
+        PPG1_details['text'] = '--.-'
+        RPG1_details['text'] = '--.-'
+        APG1_details['text'] = '--.-'
+
+    elif player == 2:
+        
+        P2_Label['text'] = '[Player 2]'
+
         PPG2_details['fg'] = 'black'
         RPG2_details['fg'] = 'black'
         APG2_details['fg'] = 'black'
-    else:
-        # Scrape calculate, and display NBA Average data:
-        web_page_contents_average = download(url = 'https://www.basketball-reference.com/leagues/NBA_stats_per_game.html')
-        PPG_av_re = '2021-22.+"pts_per_g" >([0-9.]+)</td>'
-        PPG_av_scraped = findall(PPG_av_re, web_page_contents_average)
-        PPG_av = str(round((float(PPG_av_scraped[0]) / 10), 1))
-        PPG2_details['text'] = PPG_av
 
-        RPG_av_re = '2021-22.+"trb_per_g" >([0-9.]+)</td>'
-        RPG_av_scraped = findall(RPG_av_re, web_page_contents_average)
-        RPG_av = str(round((float(RPG_av_scraped[0]) / 10), 1))
-        RPG2_details['text'] = RPG_av
+        PPG2_details['text'] = '--.-'
+        RPG2_details['text'] = '--.-'
+        APG2_details['text'] = '--.-'
 
-        APG_av_re = '2021-22.+"ast_per_g" >([0-9.]+)</td>'
-        APG_av_scraped = findall(APG_av_re, web_page_contents_average)
-        APG_av = str(round((float(APG_av_scraped[0]) / 10), 1))
-        APG2_details['text'] = APG_av
-
-        # Compare Player 1 data to NBA average data and highlight accordingly:
-        compare_player_data()
-
-        P2_Label['text'] = 'NBA Average'
-
-# Define function to display player data:
-def analyse_player_s():
-    # Try to do the following:
-    try:
-        # Download page source as a string:
-        web_page_contents = download(url = 'https://www.basketball-reference.com/leagues/NBA_2022_per_game.html')
         
-        # Check if 'Player 1' is empty or only contains whitespace and return error message if so:
-        if first_player_selection.get("1.0", "end-1c") == '' or first_player_selection.get("1.0", "end-1c").isspace(): 
-            Error_message['text'] = "*Please enter the name of a\nplayer into 'Player 1'."
+# Define function that directs user to view more
+# information about a given player in the user's browser               
+def view_more(player):
+
+    if player == 1:
+
+        try:
+
+            p1_name = P1_Label['text']
+                
+            # Check if 'Player 1' is empty or only contains whitespace and return error message if so:
+            if (p1_name == '[Player 1]'):
+                selection_error_message['text'] = "*Please analyse Player 1's statistics."
+
+                return
+            
+            else:
+                    
+                p1_firstname = p1_name.split()[0]
+                p1_surname = p1_name.split()[1]
+                
+                # Direct user to ESPN:
+                url = f"https://www.espn.com/search/_/q/{p1_firstname}%20{p1_surname}"
+                urldisplay(url)
+                return
+        except:
+            selection_error_message['text'] = f"*Unable to provide more information on {p1_name}."
+            
+    elif player == 2:
+        
+        try:
+
+            p2_name = P2_Label['text']
+
+            # Check if 'Player 1' is empty or only contains whitespace and return error message if so:
+            if (p2_name == '[Player 2]'):
+                selection_error_message['text'] = "*Please analyse Player 2's statistics."
+
+                return
+
+            elif p2_name == 'NBA Average':
+                    url = 'https://www.espn.com.au/nba/stats'
+            else:
+                
+                p2_firstname = p2_name.split()[0]
+                p2_surname = p2_name.split()[1]
+            
+                # Direct user to ESPN:
+                url = f"https://www.espn.com/search/_/q/{p2_firstname}%20{p2_surname}"
+                    
+            urldisplay(url)
+            return
+        
+        except:
+            selection_error_message['text'] = f"*Unable to provide more information on {p2_name}."
+    
+
+def retrieve_data(first_name, surname, html_code):
+
+    if first_name == 'NBA' and surname == 'Average':
+
+        PPG_regex = f'''csk="[a-zA-Z,\.\-À-Ÿ ']+".+data-stat="pts_per_g" >([0-9.]+)</td'''
+        PPG_stats = findall(PPG_regex, html_code)
+        PPG = f'{round(sum(map(float, PPG_stats)) / len(PPG_stats), 1)}'
+
+        RPG_regex = f'''csk="[a-zA-Z,\.\-À-Ÿ ']+".+data-stat="trb_per_g" >([0-9.]+)</td'''
+        RPG_stats = findall(RPG_regex, html_code)
+        RPG = f'{round(sum(map(float, RPG_stats)) / len(RPG_stats), 1)}'
+        
+        APG_regex = f'''csk="[a-zA-Z,\.\-À-Ÿ ']+".+data-stat="ast_per_g" >([0-9.]+)</td'''
+        APG_stats = findall(APG_regex, html_code)
+        APG = f'{round(sum(map(float, APG_stats)) / len(APG_stats), 1)}'
+        
+    else:
+        
+        PPG_regex = f'''csk="{surname},{first_name}".+data-stat="pts_per_g" >([0-9.]+)</td'''
+        PPG_stats = findall(PPG_regex, html_code)
+        PPG = PPG_stats[0]
+
+        RPG_regex = f'''csk="{surname},{first_name}".+data-stat="trb_per_g" >([0-9.]+)</td'''
+        RPG_stats = findall(RPG_regex, html_code)
+        RPG = RPG_stats[0]
+
+        APG_regex = f'''csk="{surname},{first_name}".+data-stat="ast_per_g" >([0-9.]+)</td'''
+        APG_stats = findall(APG_regex, html_code)
+        APG = APG_stats[0]
+
+    return PPG, RPG, APG
+    
+def compare_stats():
+
+        # Retrive statistics and compute relative difference for each respective category
+
+        # Points Per Game
+        PPG1 = float(PPG1_details['text'])
+        PPG2 = float(PPG2_details['text'])
+        PPG_difference = round(PPG1 - PPG2, 1)
+
+        # Rebounds Per Game
+        RPG1 = float(RPG1_details['text'])
+        RPG2 = float(RPG2_details['text'])
+        RPG_difference = round(RPG1 - RPG2, 1)
+
+        # Assists Per Game
+        APG1 = float(APG1_details['text'])
+        APG2 = float(APG2_details['text'])
+        APG_difference = round(APG1 - APG2, 1)
+
+        
+        # Check relative difference for each respective category and highlight data accordingly
+
+        # Points Per Game
+        if PPG_difference > 0:
+            PPG1_details['fg'] = 'green'
+            PPG2_details['fg'] = 'red'
+            PPG1_details['text'] += f' (+{PPG_difference})'
+        elif PPG_difference < 0:
+            PPG1_details['fg'] = 'red'
+            PPG2_details['fg'] = 'green'
+            PPG2_details['text'] += f' (+{-PPG_difference})'
+
+        # Rebounds Per Game
+        if RPG_difference > 0:
+            RPG1_details['fg'] = 'green'
+            RPG2_details['fg'] = 'red'
+            RPG1_details['text'] += f' (+{RPG_difference})'
+        elif RPG_difference < 0:
+            RPG1_details['fg'] = 'red'
+            RPG2_details['fg'] = 'green'
+            RPG2_details['text'] += f' (+{-RPG_difference})'
+
+        # Assists Per Game
+        if APG_difference > 0:
+            APG1_details['fg'] = 'green'
+            APG2_details['fg'] = 'red'
+            APG1_details['text'] += f' (+{APG_difference})'
+        elif APG_difference < 0:
+            APG1_details['fg'] = 'red'
+            APG2_details['fg'] = 'green'
+            APG2_details['text'] += f' (+{-APG_difference})'
+        
+
+# Define function to retreive and process statistics
+def analyse_stats():
+    
+    # Attempt the following:
+    try:
+
+        # Check if both checkbuttons are selected -- display error message if so
+        if (compare_player2player.get() and compare_player2average.get()):
+
+            option_error_message['text'] = '*Please select only one checkbox.'
+            selection_error_message['text'] = ''
             return
         else:
-            # Check if player's full name is entered and return error message if not:
-            if len(first_player_selection.get("1.0", "end-1c").split(" ")) < 2 or first_player_selection.get("1.0", "end-1c").split(" ")[1] == '':
-                Error_message['text'] = "*Please enter Player 1's full name."
-                return
-            else:
-                # Assign first name, surname, and suffix to variables:
-                Player1_firstname = first_player_selection.get("1.0", "end-1c").split(" ")[0]
-                Player1_surname = first_player_selection.get("1.0", "end-1c").split(" ")[1]
-                if len(first_player_selection.get("1.0", "end-1c").split(" ")) == 3:
-                    Player1_suffix = first_player_selection.get("1.0", "end-1c").split(" ")[2]
-                else:
-                    Player1_suffix = ''
-                
-            # If name entered exists in data, scrape and display corresponding data:
-            if first_player_selection.get("1.0", "end-1c") in web_page_contents:
-                PPG1_re = 'csk="' + Player1_surname + ',' + Player1_firstname + '".+data-stat="pts_per_g" >(.+)</td'
-                PPG1_scraped = findall(PPG1_re, web_page_contents)
-                try:
-                    PPG1_details['text'] = PPG1_scraped[0]
-
-                    RPG1_re = 'csk="' + Player1_surname + ',' + Player1_firstname + '".+data-stat="trb_per_g" >([0-9.]+)</td'
-                    RPG1_scraped = findall(RPG1_re, web_page_contents)
-                    RPG1_details['text'] = RPG1_scraped[0]
-
-                    APG1_re = 'csk="' + Player1_surname + ',' + Player1_firstname + '".+data-stat="ast_per_g" >([0-9.]+)</td'
-                    APG1_scraped = findall(APG1_re, web_page_contents)
-                    APG1_details['text'] = APG1_scraped[0]
-                    
-                    P1_Label['text'] = Player1_firstname, Player1_surname
-                    if Player1_suffix != '':
-                        P1_Label['text'] += '', Player1_suffix
-                    else:
-                        None
-
-                    # Clear error message as analysis is successful:
-                    Error_message['text'] = ''
-
-                    PPG1_details['fg'] = 'black'
-                    RPG1_details['fg'] = 'black'
-                    APG1_details['fg'] = 'black'
-
-                    PPG2_details['fg'] = 'black'
-                    RPG2_details['fg'] = 'black'
-                    APG2_details['fg'] = 'black'
-
-                    PPG2_details['text'] = '--.-'
-                    RPG2_details['text'] = '--.-'
-                    APG2_details['text'] = '--.-'
-
-                    P2_Label['text'] = 'Player 2'
+            option_error_message['text'] = ''
         
-                except:
-                    Error_message['text'] = '*Data could not be sourced for Player 1.\nPlease correctly enter the name of an active\nplayer, with no leading or trailing spaces.'
-                    return
-            else:
-                # Return error message as name entered does not exist in data:
-                Error_message['text'] = '*Data could not be sourced for Player 1.\nPlease correctly enter the name of an active\nplayer, with no leading or trailing spaces.'
-                return
+        # Download webpage source code as a string
+        web_page_contents = download(url = 'https://www.basketball-reference.com/leagues/NBA_2024_per_game.html')
 
+        # Convert accented characters to their non-accented counterparts
+        nfkd_form = unicodedata.normalize('NFKD', web_page_contents)
 
-            # Check if 'Player 2' contains non-whitespace characters and proceed with analysis if so:    
-            if second_player_selection.get("1.0", "end-1c") != '' and not second_player_selection.get("1.0", "end-1c").isspace():
-                # Check if player's full name is entered and return error message if not:
-                if len(second_player_selection.get("1.0", "end-1c").split(" ")) < 2 or second_player_selection.get("1.0", "end-1c").split(" ")[1] == '':
-                    Error_message['text'] = "*Please enter Player 2's full name."
-                    return
-                else:
-                    # Assign first name, surname, and suffix to variables:
-                    Player2_firstname = second_player_selection.get("1.0", "end-1c").split(" ")[0]
-                    Player2_surname = second_player_selection.get("1.0", "end-1c").split(" ")[1]
-                    if len(second_player_selection.get("1.0", "end-1c").split(" ")) == 3:
-                        Player2_suffix = second_player_selection.get("1.0", "end-1c").split(" ")[2]
-                    else:
-                        Player2_suffix = ''
-                # If name entered exists in data, scrape and display corresponding data:
-                if second_player_selection.get("1.0", "end-1c") in web_page_contents:
-                    PPG2_re = 'csk="' + Player2_surname + ',' + Player2_firstname + '".+data-stat="pts_per_g" >(.+)</td'
-                    PPG2_scraped = findall(PPG2_re, web_page_contents)
-                    try:
-                        PPG2_details['text'] = PPG2_scraped[0]
+        web_page_contents = ''.join([c for c in nfkd_form if not unicodedata.combining(c)]).lower()
 
-                        RPG2_re = 'csk="' + Player2_surname + ',' + Player2_firstname + '".+data-stat="trb_per_g" >([0-9.]+)</td'
-                        RPG2_scraped = findall(RPG2_re, web_page_contents)
-                        RPG2_details['text'] = RPG2_scraped[0]
+        # Retreive search entries from user input fields
+        p1_name = p1_selection.get("1.0", "end-1c").strip().lower()
+        p2_name = p2_selection.get("1.0", "end-1c").strip().lower()
+        
+        # Check if 'Player 1' input field is empty, only contains whitespace or
+        # doesn't contain the player's full name -- display error message if so
+        if p1_name == '' or p1_name.isspace() or len(p1_name.split()) < 2:
+            
+            # Display error message
+            selection_error_message['text'] = "*Please enter Player 1's full name."
 
-                        APG2_re = 'csk="' + Player2_surname + ',' + Player2_firstname + '".+data-stat="ast_per_g" >([0-9.]+)</td'
-                        APG2_scraped = findall(APG2_re, web_page_contents)
-                        APG2_details['text'] = APG2_scraped[0]
+            # Restore default data for Player 1
+            reset_data(player = 1)
 
-                        P2_Label['text'] = Player2_firstname, Player2_surname
-                        if Player2_suffix != '':
-                            P2_Label['text'] += '', Player2_suffix
-                        else:
-                            None
+            return          
+            
+        # At this point in the program, valid input for Player 1 has been confirmed
+        else:
+            
+            # Assign Player 1's first name and surname to variables
+            p1_firstname, p1_surname = p1_name.split()[:2]
+                
+            # Attempt to retrieve Player 1's statistics
+            try:
 
-                        # Clear error message as analysis is successful:
-                        Error_message['text'] = ''
-                    except:
-                        Error_message['text'] = '*Data could not be sourced for Player 2.\nPlease correctly enter the name of an active\nplayer, with no leading or trailing spaces.'
-                        return
-                else:
-                    # Return error message as name entered does not exist in data:
-                    Error_message['text'] = '*Data could not be sourced for Player 2.\nPlease correctly enter the name of an active\nplayer, with no leading or trailing spaces.'
-                    return
-            # No non-whitespace characters are entered into 'Player 2' - no need for analysis:
-            else:
-                None
+                PPG1_details['text'], RPG1_details['text'], APG1_details['text'] = \
+                                      retrieve_data(p1_firstname, p1_surname, web_page_contents)
 
-            # Check if both 'Compare (Player vs Player)' and 'Compare (Player vs NBA Average)'
-            # checkboxes are enabled and return error message if so:
-            if compare_player.get() == True and compare_player_average.get() == True:
-                Error_message['text'] = '*Please select only one checkbox.'
+                # Update Player 1 label text
+                P1_Label['text'] = f'{" ".join(p1_name.split())}'.title()
+                
 
+                # Clear error message as data retrieval is successful
+                selection_error_message['text'] = ''
+
+                # Reset font colour (for statistics) to black (in case currently highlighted)
                 PPG1_details['fg'] = 'black'
                 RPG1_details['fg'] = 'black'
                 APG1_details['fg'] = 'black'
 
-                PPG2_details['fg'] = 'black'
-                RPG2_details['fg'] = 'black'
-                APG2_details['fg'] = 'black'
+
+            # Display error message and restore default data as statistics cannot be retrieved for user input
+            except:
+
+                # Display error message
+                selection_error_message['text'] = f'*Data could not be sourced for "{p1_name.title()}".'
+
+                # Restore default data for Player 1
+                reset_data(player = 1)
+                
                 return
-            else:
-                # If 'Compare (Player vs Player)' checkbox is enabled,
-                # call function to compare Player 1 data to Player 2 data: 
-                if compare_player.get() == True:
-                    compare_player_data()
+
+            # At this point in the program, data has been successfully retrieved for Player 1
+            # The program will proceed to assess user input for Player 2
+
+            # Do the following in the case that neither checkbutton is selected
+            if not (compare_player2player.get() or compare_player2average.get()):
+
+                # Check if 'Player 2' input field is empty or only contains whitespace -- restore
+                # default data for Player 2 and exit function if so
+                if (p2_name == '' or p2_name.isspace()):
+
+                    # Restore default data for Player 2
+                    reset_data(player = 2)
                     
-                # If 'Compare (Player vs NBA Average)' checkbox is enabled,
-                # call function to compare player data to NBA average:    
-                if compare_player_average.get() == True:
-                    compare_player_av()
+                    return
+                
+                # Check if Player 2's full name is entered -- display error message if not
+                elif len(p2_name.split()) < 2:
+
+                    # Display error message
+                    selection_error_message['text'] = "*Please enter Player 2's full name."
+
+                    # Restore default data for Player 2
+                    reset_data(player = 2)
+                    
+                    return
+                
+                # At this point in the program, valid input for Player 2 has been confirmed
+                else:
+
+                    # Assign Player 2's first name and surname to variables
+                    p2_firstname, p2_surname = p2_name.split()[:2]
+                        
+
+                    # Attempt to retrieve Player 2's statistics
+                    try:
+
+                        # Retrieve and display Player 2's statistics
+                        PPG2_details['text'], RPG2_details['text'], APG2_details['text'] = \
+                                                  retrieve_data(p2_firstname, p2_surname, web_page_contents)
+
+                        # Update Player 2 label text with name of player
+                        P2_Label['text'] = f'{" ".join(p2_name.split())}'.title()
+                        
+                        # Clear error message as data retrieval is successful
+                        selection_error_message['text'] = ''
+
+                        # Reset font colour (for statistics) to black (in case currently highlighted)
+                        PPG2_details['fg'] = 'black'
+                        RPG2_details['fg'] = 'black'
+                        APG2_details['fg'] = 'black'
+
+                        return
+
+
+                    # Display error message and restore default data as statistics cannot be retrieved for user input
+                    except:
+
+                        # Display error message
+                        selection_error_message['text'] = f'*Data could not be sourced for "{p2_name.title()}".'
+
+                        # Restore default data for Player 2
+                        reset_data(player = 2)
+                        
+                        return                  
+
+            else:
+
+                # Do the following in the case that the first checkbutton is selected
+                if compare_player2player.get():
+
+                    # Check if 'Player 1' input field is empty, only contains whitespace or
+                    # doesn't contain the player's full name -- display error message if so
+                    if p2_name == '' or p2_name.isspace() or len(p2_name.split()) < 2:
+
+                        # Display error message
+                        selection_error_message['text'] = "*Please enter Player 2's name."
+
+                        # Restore default data for Player 2
+                        reset_data(player = 2)
+                        
+                        return
+                    
+                    else:
+                        
+                        # Assign first name, surname, and suffix to variables:
+                        p2_firstname, p2_surname = p2_name.split()[:2]
+                            
+                        # Attempt to retrieve Player 2's statistics
+                        try:
+
+                            # Retrieve and display Player 2's statistics
+                            PPG2_details['text'], RPG2_details['text'], APG2_details['text'] = \
+                                                  retrieve_data(p2_firstname, p2_surname, web_page_contents)
+
+                            # Update Player 2 label text with name of player
+                            P2_Label['text'] = f'{" ".join(p2_name.split())}'.title()
+                            
+                            # Clear error message as data retrieval is successful
+                            selection_error_message['text'] = ''
+
+                            # Reset font colour (for statistics) to black (in case currently highlighted)
+                            PPG2_details['fg'] = 'black'
+                            RPG2_details['fg'] = 'black'
+                            APG2_details['fg'] = 'black'
+
+
+                        # Display error message and restore default data as statistics cannot be retrieved for user input
+                        except:
+
+                            # Display error message
+                            selection_error_message['text'] =  f'*Data could not be sourced for "{p2_name.title()}".'
+
+                            # Restore default data for Player 2
+                            reset_data(player = 2)
+                            
+                            return  
+
+                # Do the following in the case that the second checkbutton is selected
+                elif compare_player2average.get():
+
+                    # Clear user input for Player 2
+                    if not (p2_name == '' or p2_name.isspace()):
+                        p2_selection.delete(0.0, END)
+
+                    # Attempt to retrieve NBA Average statistics
+                    try:
+
+                        # Retrieve and display Player 2's statistics
+                        PPG2_details['text'], RPG2_details['text'], APG2_details['text'] = \
+                                              retrieve_data('NBA', 'Average', web_page_contents)
+                        
+                        # Update Player 2 label text
+                        P2_Label['text'] = 'NBA Average'
+                        
+
+                        # Clear error message as data retrieval is successful
+                        selection_error_message['text'] = ''
+
+                        # Display error message and restore default data as statistics cannot be retrieved for user input
+                        PPG2_details['fg'] = 'black'
+                        RPG2_details['fg'] = 'black'
+                        APG2_details['fg'] = 'black'
+
+
+                    # Display error message and restore default data as statistics cannot be retrieved for user input
+                    except:
+
+                        # Display error message
+                        selection_error_message['text'] = '*Data could not be sourced for NBA Average statistics.'
+
+                        # Restore default data for Player 2
+                        reset_data(player = 2)
+                        
+                        return 
+
+                # Perform statistical comparison        
+                compare_stats()
+                
+                return   
         
     # Do the following in the case of an exception
     # where none of the errors above are the case:
     except:
-        PPG1_details['text'] = '--.-'
-        PPG1_details['font'] = ('Signika', 13, 'bold')
-        RPG1_details['text'] = '--.-'
-        RPG1_details['font'] = ('Signika', 13, 'bold')
-        APG1_details['text'] = '--.-'
-        APG1_details['font'] = ('Signika', 13, 'bold')
+        
+        # Display error message
+        selection_error_message['text'] = '*Player analysis currently unavailable.'
 
-        PPG2_details['text'] = '--.-'
-        PPG2_details['font'] = ('Signika', 13, 'bold')
-        RPG2_details['text'] = '--.-'
-        RPG2_details['font'] = ('Signika', 13, 'bold')
-        APG2_details['text'] = '--.-'
-        APG2_details['font'] = ('Signika', 13, 'bold')
-
-        Error_message['text'] = '*Player analysis currently unavailable.'
-        return
-            
-
-            
-# Define function that directs user to view more
-# information about 'Player 1' in browser:                
-def view_more_stats_player1():
-    # Check if 'Player 1' is empty or only contains whitespace and return error message if so:
-    if first_player_selection.get("1.0", "end-1c") == '' or first_player_selection.get("1.0", "end-1c").isspace():
-        Error_message['text'] = "*Please enter the name of a\nplayer into 'Player 1'."
-        return
-    elif len(first_player_selection.get("1.0", "end-1c").split(" ")) < 2:
-        Error_message['text'] = "*Please enter Player 1's full name."
-        return
-    else:
-        # Direct user to ESPN:
-        url = 'https://www.espn.com/search/_/q/' + first_player_selection.get("1.0", "end-1c").split(" ")[0] + '%20' + first_player_selection.get("1.0", "end-1c").split(" ")[1]
-        urldisplay(url)
-        return
-    
-# Define function that directs user to view more
-# information about 'Player 2' in browser: 
-def view_more_stats_player2():
-    # Check if 'Player 2' is empty or only contains whitespace and return error message if so:
-    if second_player_selection.get("1.0", "end-1c") == '' or second_player_selection.get("1.0", "end-1c").isspace():
-        Error_message['text'] = "*Please enter the name of a\nplayer into 'Player 2'."
-        return
-    elif len(second_player_selection.get("1.0", "end-1c").split(" ")) < 2:
-        Error_message['text'] = "*Please enter Player 2's full name."
-        return
-    else:
-        # Direct user to ESPN page, depending on
-        # whether average data or player data is displayed:
-        if compare_player_average.get() == True:
-            url = 'https://www.espn.com.au/nba/stats'
-        else:
-            url = 'https://www.espn.com/search/_/q/' + second_player_selection.get("1.0", "end-1c").split(" ")[0] + '%20' + second_player_selection.get("1.0", "end-1c").split(" ")[1]
-        urldisplay(url)
+        # Restore default data for both players
+        reset_data(player = 1)
+        reset_data(player = 2)
+        
         return
 
 
 #----------------------------------------------------------------#
     
-# Create and display logo:
-logo_image = PhotoImage(file='The_Stat_Pad_Logo.png')
+# Create and display logo
+logo_image = PhotoImage(file='The_Stat_Pad_Logo_2.png')
 logo = Label(GUI, image = logo_image, border = 0)
 logo.grid(row = 1, column = 1, columnspan = 2)
 
 
-# Create and display 'Player Selection' LabelFrame:
-Selection = LabelFrame(GUI, text = 'Player Selection', labelanchor = 'n', fg = colour_blue, font = ('Signika', 15, 'bold'), bg = colour_silver)
-Selection.grid(padx = 5, pady = 5, row = 2, column = 1, sticky = 'n')
+# Create and display 'Player Selection' LabelFrame
+Selection = LabelFrame(GUI, text = 'Player Selection', labelanchor = 'n', fg = colour_blue, font = labelframe_font, \
+                       bg = colour_silver)
+Selection.grid(padx = 5, pady = (5, 0), row = 2, column = 1, sticky = 'n')
 
 
-# Create and display LabelFrames for each of two players to contain text entry fields:
-First_player = LabelFrame(Selection, text = '*Player 1', labelanchor = 'n', fg = colour_grey, font = ('Signika', 13, 'bold'), bg = colour_silver)
-First_player.grid(padx = 5, pady = 5, row = 1, column = 1)
+# Create and display LabelFrames for entry fields for each player
+p1 = LabelFrame(Selection, text = '*Player 1', labelanchor = 'n', fg = colour_grey, font = search_font_bold, \
+                          bg = colour_silver)
+p1.grid(padx = 20, pady = 5, row = 1, column = 1)
 
-second_player = LabelFrame(Selection, text = 'Player 2', labelanchor = 'n', fg = colour_grey, font = ('Signika', 13, 'bold'), bg = colour_silver)
-second_player.grid(padx = 5, pady = 5, row = 2, column = 1)
-
-# Create and display text entry fields for each of two players:
-first_player_selection = Text(First_player, width = 25, height = 1, font = 11)
-first_player_selection.grid(padx = 5, pady = 5, row = 1, column = 3, columnspan = 2)
-
-second_player_selection = Text(second_player, width = 25, height = 1, font = 11)
-second_player_selection.grid(padx = 5, pady = 5, row = 1, column = 3, columnspan = 2)
+p2 = LabelFrame(Selection, text = 'Player 2', labelanchor = 'n', fg = colour_grey, font = search_font_bold, \
+                           bg = colour_silver)
+p2.grid(padx = 20, pady = 5, row = 2, column = 1)
 
 
-# Create and display 'Options' LabelFrame to contain user's options:
-Options = LabelFrame(Selection, text = 'Options', labelanchor = 'n', fg = colour_grey, font = ('Signika', 13, 'bold'), bg = colour_silver)
+# Create and display text entry fields for each player
+p1_selection = Text(p1, width = 30, height = 1, font = search_font)
+p1_selection.grid(padx = 5, pady = 5, row = 1, column = 3, columnspan = 2)
+
+p2_selection = Text(p2, width = 30, height = 1, font = search_font)
+p2_selection.grid(padx = 5, pady = 5, row = 1, column = 3, columnspan = 2)
+
+
+# Create and display 'Options' LabelFrame to contain user's options
+Options = LabelFrame(GUI, text = 'Options', labelanchor = 'n', fg = colour_blue, font = labelframe_font, bg = colour_silver)
 Options.grid(padx = 5, pady = 5, row = 3, column = 1)
 
-# Create and display 'Analyse' Button within 'Options' LabelFrame to analyse player data:
-Analyse = Button(Options, text = 'Analyse', command = analyse_player_s, font = 11, activeforeground = 'white', activebackground = colour_blue)
-Analyse.grid(padx = 5, pady = 5, row = 3, column = 1)
 
-# Create and display 'Compare (Player vs Player)' Checkutton
-# to provide option of comparing Player 1 to Player 2:
-compare_button = Checkbutton(Options, text = 'Compare (Player vs Player)', variable = compare_player, onvalue = True, offvalue = False, font = 11, bg = colour_silver)
-compare_button.grid(padx = 5, pady = 5, row = 1, column = 1, sticky = 'w')
-
-# Create and display 'Compare (Player vs NBA Average)' Checkutton
-# to provide option of comparing Player 1 to NBA Average:
-compare_button = Checkbutton(Options, text = 'Compare (Player vs NBA Average)', variable = compare_player_average, onvalue = True, offvalue = False, font = 11, bg = colour_silver)
-compare_button.grid(padx = 5, pady = 5, row = 2, column = 1, sticky = 'w')
+# Create and display 'Analyse' Button within 'Options' LabelFrame to analyse player data
+Analyse = Button(Selection, text = 'Analyse', command = analyse_stats, font = search_font, activeforeground = 'white', \
+                 activebackground = colour_blue)
+Analyse.grid(padx = 5, pady = (5, 5), row = 3, column = 1)
 
 
-# Create and display 'Player Selection' LabelFrame:
-Selection_details = LabelFrame(GUI, text = 'Player Analysis', labelanchor = 'n', fg = colour_blue, font = ('Signika', 15, 'bold'), bg = colour_silver)
-Selection_details.grid(padx = 5, pady = 5, row = 2, column = 2, sticky = 'n')
+# Create and display Checkbutton to provide option of comparing players
+compare_button = Checkbutton(Options, text = 'Compare (Player 1 vs Player 2)', \
+                             variable = compare_player2player, onvalue = True, offvalue = False, \
+                             font = checkbutton_font, bg = colour_silver)
+compare_button.grid(padx = 20, pady = (5, 0), row = 1, column = 1, sticky = 'w')
 
-# Create and display 'Player Selection' LabelFrame to contain names of selected players:
-Player_titles = LabelFrame(Selection_details, font = ('Signika', 15, 'bold'), bg = colour_blue)
+
+# Create and display Checkutton to provide option of comparing Player 1 to NBA Average
+compare_button = Checkbutton(Options, text = 'Compare (Player 1 vs NBA Average)', \
+                             variable = compare_player2average, onvalue = True, offvalue = False, \
+                             font = checkbutton_font, bg = colour_silver)
+compare_button.grid(padx = 20, pady = (0, 5), row = 2, column = 1, sticky = 'w')
+
+
+# Create and display 'Player Selection' LabelFrame
+Selection_details = LabelFrame(GUI, text = 'Player Analysis', labelanchor = 'n', fg = colour_blue, \
+                               font = labelframe_font, bg = colour_silver)
+Selection_details.grid(padx = 5, pady = 5, row = 2, column = 2, rowspan = 2, sticky = 'n')
+
+
+# Create and display 'Player Selection' LabelFrame to contain names of selected players
+Player_titles = LabelFrame(Selection_details, bg = colour_blue)
 Player_titles.grid(padx = 5, pady = 15, row = 1, column = 1, columnspan = 3, sticky = 'n')
 
-# Create and display Labels to display names of selected players:
-P1_Label = Label(Player_titles, text = '[Player 1]', justify = 'center', fg = 'white', font = ('Signika', 13, 'bold'), bg = colour_blue)
-P1_Label.grid(pady = 5, row = 1, column = 1)
 
-vs_Label = Label(Player_titles, text = 'vs', justify = 'center', width = 2, fg = 'white', font = ('Signika', 13, 'bold'), bg = colour_blue)
-vs_Label.grid(pady = 5, row = 1, column = 2)
+# Create and display Labels to display names of selected players
+P1_Label = Label(Player_titles, width = 12, wraplength = 150, text = '[Player 1]', justify = 'center', fg = 'white', \
+                 font = search_font_bold, bg = colour_blue)
+P1_Label.grid(padx = (5, 0), pady = 5, row = 1, column = 1)
 
-P2_Label = Label(Player_titles, text = '[Player 2]', justify = 'center', fg = 'white', font = ('Signika', 13, 'bold'), bg = colour_blue)
-P2_Label.grid(pady = 5, row = 1, column = 3)
+vs_Label = Label(Player_titles, text = 'vs', justify = 'center', width = 2, fg = 'white', font = search_font_bold, \
+                 bg = colour_blue)
+vs_Label.grid(padx = 10, pady = 5, row = 1, column = 2)
+
+P2_Label = Label(Player_titles, width = 12, wraplength = 150, text = '[Player 2]', justify = 'center', fg = 'white', \
+                 font = search_font_bold, bg = colour_blue)
+P2_Label.grid(padx = (0, 5), pady = 5, row = 1, column = 3)
 
 
 # Create and display Labels for each statistic:
-PPG = Label(Selection_details, text = 'PPG', fg = colour_grey, font = ('Signika', 13, 'bold'), bg = colour_silver)
-PPG.grid(padx = 5, pady = 5, row = 2, column = 2)
+PPG = Label(Selection_details, text = 'PPG', fg = colour_grey, font = search_font_bold, bg = colour_silver)
+PPG.grid(padx = 0, pady = 5, row = 2, column = 2)
 
-RPG = Label(Selection_details, text = 'RPG', fg = colour_grey, font = ('Signika', 13, 'bold'), bg = colour_silver)
-RPG.grid(padx = 5, pady = 5, row = 3, column = 2)
+RPG = Label(Selection_details, text = 'RPG', fg = colour_grey, font = search_font_bold, bg = colour_silver)
+RPG.grid(padx = 0, pady = 5, row = 3, column = 2)
 
-APG = Label(Selection_details, text = 'APG', fg = colour_grey, font = ('Signika', 13, 'bold'), bg = colour_silver)
-APG.grid(padx = 5, pady = 5, row = 4, column = 2)
+APG = Label(Selection_details, text = 'APG', fg = colour_grey, font = search_font_bold, bg = colour_silver)
+APG.grid(padx = 0, pady = 5, row = 4, column = 2)
 
-# Create and display Labels to display Player 1's statistics:
-PPG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = 15, bg = colour_silver)
-PPG1_details.grid(padx = 5, pady = 5, row = 2, column = 1)
 
-RPG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = 15,  bg = colour_silver)
-RPG1_details.grid(padx = 5, pady = 5, row = 3, column = 1)
+# Create and display Labels to display Player 1's statistics
+PPG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font, bg = colour_silver)
+PPG1_details.grid(padx = (5, 0), pady = 5, row = 2, column = 1)
 
-APG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = 15,  bg = colour_silver)
-APG1_details.grid(padx = 5, pady = 5, row = 4, column = 1)
+RPG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font,  bg = colour_silver)
+RPG1_details.grid(padx = (5, 0), pady = 5, row = 3, column = 1)
 
-# Create and display Labels to display Player 2's statistics:
-PPG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = 15, bg = colour_silver)
-PPG2_details.grid(padx = 5, pady = 5, row = 2, column = 3)
+APG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font,  bg = colour_silver)
+APG1_details.grid(padx = (5, 0), pady = 5, row = 4, column = 1)
 
-RPG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = 15,  bg = colour_silver)
-RPG2_details.grid(padx = 5, pady = 5, row = 3, column = 3)
 
-APG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = 15,  bg = colour_silver, wraplength = 350)
-APG2_details.grid(padx = 5, pady = 5, row = 4, column = 3)
+# Create and display Labels to display Player 2's statistics
+PPG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font, bg = colour_silver)
+PPG2_details.grid(padx = (0, 5), pady = 5, row = 2, column = 3)
 
-# Create and display 'View More' buttons for each player for users to view more information:
-View_more_p1 = Button(Selection_details, text = 'View More', command = view_more_stats_player1, font = 11, activeforeground = 'white', activebackground = colour_blue)
-View_more_p1.grid(padx = 5, pady = 5, row = 5, column = 1)
+RPG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font,  bg = colour_silver)
+RPG2_details.grid(padx = (0, 5), pady = 5, row = 3, column = 3)
 
-View_more_p2 = Button(Selection_details, text = 'View More', command = view_more_stats_player2, font = 11, activeforeground = 'white', activebackground = colour_blue)
-View_more_p2.grid(padx = 5, pady = 5, row = 5, column = 3)
+APG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font,  bg = colour_silver, \
+                     wraplength = 350)
+APG2_details.grid(padx = (0, 5), pady = 5, row = 4, column = 3)
 
-# create and display 'Error Message' Label, where all error messages will be displayed:
-Error_message = Label(Selection, text = '', justify = 'left', fg = 'red', font = ('Signika', 11), bg = colour_silver)
-Error_message.grid(padx = 5, row = 4, column = 1, sticky = 'nw')
 
-# Create and display 'Glossary' LabelFrame to contain glossary:
-Glossary = LabelFrame(Selection_details, fg = colour_grey, font = ('Signika', 18, 'bold'), bg = colour_silver)
-Glossary.grid(padx = 5, pady = 20, row = 6, column = 1, columnspan = 3, sticky = 's')
+# Create and display 'View More' buttons for users to view more information about each player
+View_more_p1 = Button(Selection_details, text = ' View More ', command = lambda: view_more(player = 1), font = search_font, \
+                      activeforeground = 'white', activebackground = colour_blue)
+View_more_p1.grid(padx = (10, 0), pady = 5, row = 5, column = 1)
 
-# Create and display 'Glossary Details' Label to provide explanation of statistics abbreviations:
-Glossary_details = Label(Glossary, text = 'PPG: Points Per Game\nAPG: Assists Per Game\nRPG: Rebounds Per Game', font = 11, justify = "left", bg = colour_silver)
-Glossary_details.grid(padx = 5, pady = 5, row = 1, column = 1, sticky = 'w')
+View_more_p2 = Button(Selection_details, text = ' View More ', command = lambda: view_more(player = 2), font = search_font, \
+                      activeforeground = 'white', activebackground = colour_blue)
+View_more_p2.grid(padx = (0, 10), pady = 5, row = 5, column = 3)
 
+
+# Create and display 'Error Message' Labels, where all error messages will be displayed
+selection_error_message = Label(Selection, text = '', justify = 'left', fg = 'red', font = error_font, bg = colour_silver)
+selection_error_message.grid(padx = 5, row = 4, column = 1, sticky = 'nw')
+
+option_error_message = Label(Options, text = '', justify = 'left', fg = 'red', font = error_font, bg = colour_silver)
+option_error_message.grid(padx = 5, row = 3, column = 1, sticky = 'nw')
+
+
+# Create and display 'Legend' LabelFrame to contain legend
+Legend = LabelFrame(Selection_details, fg = colour_grey, font = legend_font, bg = colour_silver)
+Legend.grid(padx = 5, pady = (18, 5), row = 6, column = 1, columnspan = 3, sticky = 'sw')
+
+
+# Create and display 'Legend Details' Label to provide explanation of statistics abbreviations
+Legend_details = Label(Legend, text = 'PPG: Points Per Game\nAPG: Assists Per Game\nRPG: Rebounds Per Game', \
+                         font = search_font, justify = "left", bg = colour_silver)
+Legend_details.grid(padx = (5, 100), pady = 5, row = 1, column = 1, sticky = 'w')
 
 
 # Start the event loop to react to user inputs:

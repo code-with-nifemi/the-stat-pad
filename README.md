@@ -1,2 +1,2 @@
 # The Stat Pad
-Python Web Scraper GUI that displays and compares NBA player statistics.
+Interactive web scraper that allows users to search, display and compare NBA player statistics.

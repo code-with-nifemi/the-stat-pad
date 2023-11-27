@@ -769,7 +769,7 @@ def analyse_stats(event = None, player = None):
 #----------------------------------------------------------------#
     
 # Create and display logo
-logo_image = PhotoImage(file='The_Stat_Pad_Logo_2.png')
+logo_image = PhotoImage(file='The_Stat_Pad_Logo.png')
 logo = Label(GUI, image = logo_image, border = 0)
 logo.grid(row = 1, column = 1, columnspan = 2)
 

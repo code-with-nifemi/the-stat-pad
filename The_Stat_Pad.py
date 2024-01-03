@@ -126,13 +126,14 @@ colour_grey = '#333333'
 colour_silver = '#f9f9f9'
 
 # Create font variables
-labelframe_font = ('Signika', 15, 'bold')
-stats_font = ('Signika', 15)
-search_font_bold = ('Signika', 13, 'bold')
-search_font = ('Signika', 13)
-checkbutton_font = ('Signika', 14)
-error_font = ('Signika', 11)
-legend_font = ('Signika', 18, 'bold')
+
+sig_15_b = ('Signika', 15, 'bold')
+sig_15 = ('Signika', 15)
+sig_13_b = ('Signika', 13, 'bold')
+sig_13 = ('Signika', 13)
+sig_14 = ('Signika', 14)
+sig_11 = ('Signika', 11)
+sig_18_b = ('Signika', 18, 'bold')
 
 # Configure GUI background colour
 GUI['bg'] = colour_silver
@@ -143,124 +144,180 @@ compare_player2average = BooleanVar()
 p1_text = StringVar()
 p2_text = StringVar()
 
+# Function to convert accented characters to their non-accented counterparts
 def normalise_accents(accented_string):
 
-        # Convert accented characters to their non-accented counterparts
+        # Normalise accented characters individually
         nfkd_form = unicodedata.normalize('NFKD', accented_string)
 
+        # Reassemble string
         unaccented_string = ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
 
         return unaccented_string
     
 
+# Function to initialise listbox with names
 def update_listbox(player, names):
 
     if player == 1:
 
+        # Delete existing names
         p1_listbox.delete(0, END)
 
+        # Insert new names
         for name in names:
             p1_listbox.insert(END, name)
 
     elif player == 2:
 
+        # Delete existing names
         p2_listbox.delete(0, END)
 
+        # Insert new names
         for name in names:
             p2_listbox.insert(END, name)
     
 
+# Function to fill out text entry field with current selection
 def fillout(player, event = None):
 
-    
     if player == 1:
         
+        # Retrieve numerical identifier of current selection
         selection_id = p1_listbox.curselection()
 
         if selection_id != ():
             
+            # Remove existing text
             p1_selection.delete(0, END)
+
+            # Insert new text (name of currently selected player)
             p1_selection.insert(0, p1_listbox.get(selection_id))
             
-    
     elif player == 2:
         
-        
+        # Retrieve numerical identifier of current selection
         selection_id = p2_listbox.curselection()
 
         if selection_id != ():
+
+            # Remove existing text
             p2_selection.delete(0, END)
+
+            # Insert new text (name of currently selected player)
             p2_selection.insert(0, p2_listbox.get(selection_id)) 
 
-        
+# Function to update listbox after each key press       
 def check(player, event = None):
 
     if player == 1:
 
-        user_input = p1_selection.get().lower()
+        # Retreive input text
+        user_input = p1_selection.get().strip().lower()
 
+        # If no input text, update listbox with initial player names
         if user_input == '':
             data = player_names
+
         else:
+
             data = []
+            insert_index = 0
+
             for name in player_names:
                 
+                # Convert name to lowercase
+                name_lower = name.lower()
+                
+                # Retrieve first name and surname
+                first_name, surname = name_lower.split()[:2]
 
-                first_name, surname = name.lower().split()[:2]
-
-                if user_input == name.lower():
+                # Exit function if name already fully matched
+                if user_input == name_lower:
                     data = []
                     break
-                
-                if name.lower().startswith(user_input) or surname.startswith(user_input):
+
+                # Append names to list that still match search query (insert matches by first name before surname)
+                if first_name.startswith(user_input):
+                    data.insert(insert_index, name)
+                    insert_index += 1
+
+                elif surname.startswith(user_input):
                     data.append(name)
 
+        # Update listbox with names that still match search query
         update_listbox(1, data)
 
+        # Highlight first element in listbox
         p1_listbox.select_set(0)
         
     elif player == 2:
 
-        user_input = p2_selection.get().lower()
+        # Retrieve input text
+        user_input = p2_selection.get().strip().lower()
 
+        # If no input text, update listbox with initial player names
         if user_input == '':
             data = player_names
+
         else:
+
             data = []
+            insert_index = 0
+
             for name in player_names:
-                
+
+                # Convert name to lowercase
+                name_lower = name.lower()
+
+                # Retrieve first name and surname
                 first_name, surname = name.lower().split()[:2]
 
+                # Exit function if name already fully matched
                 if user_input == name.lower():
                     data = []
                     break
                 
-                if name.lower().startswith(user_input) or surname.startswith(user_input):
+                # Append names to list that still match search query (insert matches by first name before surname)
+                if first_name.startswith(user_input):
+                    data.insert(insert_index, name)
+                    insert_index += 1
+
+                elif surname.startswith(user_input):
                     data.append(name)
 
+        # Update listbox with names that still match search query
         update_listbox(2, data)
 
+        # Highlight first element in listbox
         p2_listbox.select_set(0)
 
-    
+# Function to activate listbox when entry widget is clicked    
 def activate_listbox(player, event = None):
 
     if player == 1:
+
+        # Highlight first element in selected listbox
         p1_listbox.select_set(0)
+
+        # Unhighlight all elements in unselected listbox
         p2_listbox.selection_clear(0, END)
 
     elif player == 2:
+        
+        # Highlight first element in selected listbox
         p2_listbox.select_set(0)
+
+        # Unhighlight all elements in unselected listbox
         p1_listbox.selection_clear(0, END)
         
 
-# Define function to allow switching between input fields using "Tab" key
+# Define function to switch between input fields and listbox using "Tab" key
 def switch_focus(event):
     
     if event.widget == p1_selection:
         p1_listbox.focus_set()
     elif event.widget == p1_listbox:
-        
         p1_selection.focus_set()
 
     elif event.widget == p2_selection:
@@ -270,24 +327,31 @@ def switch_focus(event):
 
     return 'break'
 
+
+# Define function to change listbox selection using arrow keys
 def change_selection(event, player, direction):
 
-    
     if player == 1:
-        selection_id = p1_listbox.curselection()
+
+        # Retrieve numerical identifier of current selection
+        selection_id = p1_listbox.curselection()[0]
 
         if selection_id != ():
-
-            p1_listbox.select_set(selection_id[0] + direction)
+            
+            # Select adjacent element
+            p1_listbox.select_set(selection_id + direction)
 
     elif player == 2:
 
-        selection_id = p2_listbox.curselection()
+        # Retrieve numerical identifier of current selection
+        selection_id = p2_listbox.curselection()[0]
 
         if selection_id != ():
+            
+            # Select adjacent element
+            p2_listbox.select_set(selection_id + direction)
 
-            p2_listbox.select_set(selection_id[0] + direction)
-
+# Define function to clear text input and reset listbox
 def clear_input(player):
 
     if player == 1:
@@ -298,8 +362,8 @@ def clear_input(player):
         p2_selection.delete(0, END)
         check(2)
 
-# Define function to perform data analysis
 
+# Define function to reset player statistics to default values
 def reset_data(player):
 
     if player == 1:
@@ -341,19 +405,19 @@ def view_more(player):
     if player == 1:
 
         try:
-
             p1_name = P1_Label['text']
                 
             # Check if 'Player 1' is empty or only contains whitespace and return error message if so:
+            
+            # Return error message if no player has been analysed yet
             if (p1_name == '[Player 1]'):
                 selection_error_message['text'] = "*Please analyse Player 1's statistics."
 
                 return
-            
             else:
-                    
-                p1_firstname = p1_name.split()[0]
-                p1_surname = p1_name.split()[1]
+                
+                # Retreive first name and surname
+                p1_firstname, p1_surname = p1_name.split()[:2]
                 
                 # Direct user to ESPN:
                 url = f"https://www.espn.com/search/_/q/{p1_firstname}%20{p1_surname}"
@@ -431,7 +495,9 @@ def retrieve_data(first_name, surname, html_code):
         profile_img = ImageTk.PhotoImage(data = image_bytes)
 
     return profile_img, PPG, RPG, APG
-    
+
+
+# Define function to perform data analysis    
 def compare_stats():
 
         # Retrive statistics and compute relative difference for each respective category
@@ -775,17 +841,17 @@ logo.grid(row = 1, column = 1, columnspan = 2)
 
 
 # Create and display 'Player Selection' LabelFrame
-Selection = LabelFrame(GUI, text = 'Player Selection', labelanchor = 'n', fg = colour_blue, font = labelframe_font, \
+Selection = LabelFrame(GUI, text = 'Player Selection', labelanchor = 'n', fg = colour_blue, font = sig_15_b, \
                        bg = colour_silver)
 Selection.grid(padx = 5, pady = (5, 0), row = 2, column = 1, sticky = 'n')
 
 
 # Create and display LabelFrames for entry fields for each player
-p1 = LabelFrame(Selection, text = '*Player 1', labelanchor = 'n', fg = colour_grey, font = search_font_bold, \
+p1 = LabelFrame(Selection, text = '*Player 1', labelanchor = 'n', fg = colour_grey, font = sig_13_b, \
                           bg = colour_silver)
 p1.grid(padx = 20, pady = 5, row = 1, column = 1)
 
-p2 = LabelFrame(Selection, text = 'Player 2', labelanchor = 'n', fg = colour_grey, font = search_font_bold, \
+p2 = LabelFrame(Selection, text = 'Player 2', labelanchor = 'n', fg = colour_grey, font = sig_13_b, \
                            bg = colour_silver)
 p2.grid(padx = 20, pady = 5, row = 1, column = 2)
 
@@ -799,14 +865,14 @@ player_names = list(set(findall(player_names_regex, web_page_contents)))
 player_names = sorted(map(normalise_accents, player_names), key = lambda x: x.split()[1])
 
 # Create and display text entry fields for each player
-p1_selection = Entry(p1, width = 30, font = search_font)
+p1_selection = Entry(p1, width = 30, font = sig_13)
 p1_selection.grid(padx = 5, pady = 5, row = 1, column = 1)
 p1_selection.bind("<Tab>", switch_focus)
 p1_selection.bind("<Return>", lambda event, player = 1: analyse_stats(event, player))
 p1_selection.bind("<KeyRelease>", lambda event, player = 1: check(player, event))
 p1_selection.bind("<1>", lambda event, player = 1: activate_listbox(player, event))
 
-p1_listbox = Listbox(p1, font = search_font, height = 6, width = 30, exportselection = False)
+p1_listbox = Listbox(p1, font = sig_13, height = 6, width = 30, exportselection = False)
 p1_listbox.grid(row = 2, column = 1, pady = 5)
 
 update_listbox(1, player_names)
@@ -818,14 +884,14 @@ p1_listbox.bind("<Up>", lambda event, player = 1, direction = 1: change_selectio
 p1_listbox.bind("<Down>", lambda event, player = 1, direction = -1: change_selection(event, player, direction))
 
 
-p2_selection = Entry(p2, width = 30, font = search_font)
+p2_selection = Entry(p2, width = 30, font = sig_13)
 p2_selection.grid(padx = 5, pady = 5, row = 1, column = 1)
 p2_selection.bind("<Tab>", switch_focus)
 p2_selection.bind("<Return>", lambda event, player = 2: analyse_stats(event, player))
 p2_selection.bind("<KeyRelease>", lambda event, player = 2: check(player, event))
 p2_selection.bind("<1>", lambda event, player = 2: activate_listbox(player, event))
 
-p2_listbox = Listbox(p2, font = search_font, height = 6, width = 30, exportselection = False)
+p2_listbox = Listbox(p2, font = sig_13, height = 6, width = 30, exportselection = False)
 p2_listbox.grid(row = 2, column = 1, pady = 5)
 
 update_listbox(2, player_names)
@@ -838,22 +904,22 @@ p2_listbox.bind("<Down>", lambda event, player = 2, direction = -1: change_selec
 
 
 # Create and display 'Options' LabelFrame to contain user's options
-Options = LabelFrame(GUI, text = 'Options', labelanchor = 'n', fg = colour_blue, font = labelframe_font, bg = colour_silver)
-Options.grid(padx = 5, pady = (30, 5) , row = 3, column = 1, sticky = 'nw')
+Options = LabelFrame(GUI, text = 'Options', labelanchor = 'n', fg = colour_blue, font = sig_15_b, bg = colour_silver)
+Options.grid(padx = 5, pady = (10, 5) , row = 3, column = 1, sticky = 'nw')
 
 
 # Create and display 'Analyse' Button within 'Options' LabelFrame to analyse player data
-Analyse = Button(Selection, text = ' Analyse ', command = analyse_stats, font = search_font, activeforeground = 'white', \
+Analyse = Button(Selection, text = ' Analyse ', command = analyse_stats, font = sig_13, activeforeground = 'white', \
                  activebackground = colour_blue)
 Analyse.grid(padx = 5, pady = (15, 5), row = 3, column = 1, columnspan = 2)
 
 # Create and display 'Analyse' Button within 'Options' LabelFrame to analyse player data
-Clear_p1 = Button(Selection, text = ' Clear ', command = lambda: clear_input(player = 1), font = search_font, bg = colour_blue, fg = 'white', \
+Clear_p1 = Button(Selection, text = ' Clear ', command = lambda: clear_input(player = 1), font = sig_13, bg = colour_blue, fg = 'white', \
                   activeforeground = 'black', activebackground = '#F0F0F0')
 Clear_p1.grid(padx = 5, pady = (15, 5), row = 2, column = 1)
 
 # Create and display 'Analyse' Button within 'Options' LabelFrame to analyse player data
-Clear_p2 = Button(Selection, text = ' Clear ', command = lambda: clear_input(player = 2), font = search_font, bg = colour_blue, fg = 'white', \
+Clear_p2 = Button(Selection, text = ' Clear ', command = lambda: clear_input(player = 2), font = sig_13, bg = colour_blue, fg = 'white', \
                   activeforeground = 'black', activebackground = '#F0F0F0')
 Clear_p2.grid(padx = 5, pady = (15, 5), row = 2, column = 2)
 
@@ -864,20 +930,20 @@ Clear_p2.grid(padx = 5, pady = (15, 5), row = 2, column = 2)
 # Create and display Checkbutton to provide option of comparing players
 compare_button = Checkbutton(Options, text = 'Compare (Player 1 vs Player 2)', \
                              variable = compare_player2player, onvalue = True, offvalue = False, \
-                             font = checkbutton_font, bg = colour_silver)
-compare_button.grid(padx = (10, 355), pady = (25, 0), row = 1, column = 1, sticky = 'w')
+                             font = sig_14, bg = colour_silver)
+compare_button.grid(padx = (10, 355), pady = (0, 0), row = 1, column = 1, sticky = 'w')
 
 
 # Create and display Checkutton to provide option of comparing Player 1 to NBA Average
 compare_button = Checkbutton(Options, text = 'Compare (Player 1 vs NBA Average)', \
                              variable = compare_player2average, onvalue = True, offvalue = False, \
-                             font = checkbutton_font, bg = colour_silver)
+                             font = sig_14, bg = colour_silver)
 compare_button.grid(padx = 10, pady = (0, 5), row = 2, column = 1, sticky = 'w')
 
 
 # Create and display 'Player Selection' LabelFrame
 Selection_details = LabelFrame(GUI, text = 'Player Analysis', labelanchor = 'n', fg = colour_blue, \
-                               font = labelframe_font, bg = colour_silver)
+                               font = sig_15_b, bg = colour_silver)
 Selection_details.grid(padx = 5, pady = 5, row = 2, column = 2, rowspan = 2, sticky = 'n')
 
 
@@ -888,79 +954,79 @@ Player_titles.grid(padx = 5, pady = 15, row = 2, column = 1, columnspan = 3, sti
 
 # Create and display Labels to display names of selected players
 P1_Label = Label(Player_titles, width = 14, wraplength = 140, text = '[Player 1]', justify = 'center', fg = 'white', \
-                 font = search_font_bold, bg = colour_blue)
+                 font = sig_13_b, bg = colour_blue)
 P1_Label.grid(padx = (5, 0), pady = 5, row = 1, column = 1)
 
-vs_Label = Label(Player_titles, text = '|', justify = 'center', width = 2, fg = 'white', font = search_font_bold, \
+vs_Label = Label(Player_titles, text = '|', justify = 'center', width = 2, fg = 'white', font = sig_13_b, \
                  bg = colour_blue)
-vs_Label.grid(padx = 10, pady = 5, row = 1, column = 2)
+vs_Label.grid(padx = 60, pady = 5, row = 1, column = 2)
 
 P2_Label = Label(Player_titles, width = 14, wraplength = 140, text = '[Player 2]', justify = 'center', fg = 'white', \
-                 font = search_font_bold, bg = colour_blue)
+                 font = sig_13_b, bg = colour_blue)
 P2_Label.grid(padx = (0, 5), pady = 5, row = 1, column = 3)
 
 
 # Create and display Labels for each statistic:
-PPG = Label(Selection_details, text = 'PPG', fg = colour_grey, font = search_font_bold, bg = colour_silver)
+PPG = Label(Selection_details, text = 'Points', fg = colour_grey, font = sig_13_b, bg = colour_silver)
 PPG.grid(padx = 0, pady = 5, row = 3, column = 2)
 
-RPG = Label(Selection_details, text = 'RPG', fg = colour_grey, font = search_font_bold, bg = colour_silver)
+RPG = Label(Selection_details, text = 'Rebounds', fg = colour_grey, font = sig_13_b, bg = colour_silver)
 RPG.grid(padx = 0, pady = 5, row = 4, column = 2)
 
-APG = Label(Selection_details, text = 'APG', fg = colour_grey, font = search_font_bold, bg = colour_silver)
+APG = Label(Selection_details, text = 'Assists', fg = colour_grey, font = sig_13_b, bg = colour_silver)
 APG.grid(padx = 0, pady = 5, row = 5, column = 2)
 
 
 # Create and display Labels to display Player 1's statistics
-PPG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font, bg = colour_silver)
+PPG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = sig_15, bg = colour_silver)
 PPG1_details.grid(padx = (5, 0), pady = 5, row = 3, column = 1)
 
-RPG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font,  bg = colour_silver)
+RPG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = sig_15,  bg = colour_silver)
 RPG1_details.grid(padx = (5, 0), pady = 5, row = 4, column = 1)
 
-APG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font,  bg = colour_silver)
+APG1_details = Label(Selection_details, text = '--.-', justify = 'center', font = sig_15,  bg = colour_silver)
 APG1_details.grid(padx = (5, 0), pady = 5, row = 5, column = 1)
 
 
 # Create and display Labels to display Player 2's statistics
-PPG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font, bg = colour_silver)
+PPG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = sig_15, bg = colour_silver)
 PPG2_details.grid(padx = (0, 5), pady = 5, row = 3, column = 3)
 
-RPG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font,  bg = colour_silver)
+RPG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = sig_15,  bg = colour_silver)
 RPG2_details.grid(padx = (0, 5), pady = 5, row = 4, column = 3)
 
-APG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = stats_font,  bg = colour_silver, \
+APG2_details = Label(Selection_details, text = '--.-', justify = 'center', font = sig_15,  bg = colour_silver, \
                      wraplength = 350)
 APG2_details.grid(padx = (0, 5), pady = 5, row = 5, column = 3)
 
 
 # Create and display 'View More' buttons for users to view more information about each player
-View_more_p1 = Button(Selection_details, text = ' View More ', command = lambda: view_more(player = 1), font = search_font, \
+View_more_p1 = Button(Selection_details, text = ' View More ', command = lambda: view_more(player = 1), font = sig_13, \
                       activeforeground = 'white', activebackground = colour_blue)
-View_more_p1.grid(padx = (10, 0), pady = 5, row = 6, column = 1)
+View_more_p1.grid(padx = (10, 0), pady = (10, 0), row = 6, column = 1)
 
-View_more_p2 = Button(Selection_details, text = ' View More ', command = lambda: view_more(player = 2), font = search_font, \
+View_more_p2 = Button(Selection_details, text = ' View More ', command = lambda: view_more(player = 2), font = sig_13, \
                       activeforeground = 'white', activebackground = colour_blue)
-View_more_p2.grid(padx = (0, 10), pady = 5, row = 6, column = 3)
+View_more_p2.grid(padx = (0, 10), pady = (10, 0), row = 6, column = 3)
 
 
 # Create and display 'Error Message' Labels, where all error messages will be displayed
-selection_error_message = Label(Selection, text = '', justify = 'left', fg = 'red', font = error_font, bg = colour_silver)
+selection_error_message = Label(Selection, text = '', justify = 'left', fg = 'red', font = sig_11, bg = colour_silver)
 selection_error_message.grid(padx = 5, row = 4, column = 1, sticky = 'nw')
 
-option_error_message = Label(Options, text = '', justify = 'left', fg = 'red', font = error_font, bg = colour_silver)
+option_error_message = Label(Options, text = '', justify = 'left', fg = 'red', font = sig_11, bg = colour_silver)
 option_error_message.grid(padx = 5, row = 3, column = 1, sticky = 'nw')
 
 
 # Create and display 'Legend' LabelFrame to contain legend
-Legend = LabelFrame(Selection_details, fg = colour_grey, font = legend_font, bg = colour_silver)
-Legend.grid(padx = 5, pady = (18, 5), row = 7, column = 1, columnspan = 3, sticky = 'sw')
+Legend = LabelFrame(Selection_details, fg = colour_grey, font = sig_18_b, bg = colour_silver)
+#Legend.grid(padx = 5, pady = (18, 5), row = 7, column = 1, columnspan = 3, sticky = 'sw')
 
 
 # Create and display 'Legend Details' Label to provide explanation of statistics abbreviations
-Legend_details = Label(Legend, text = 'PPG: Points Per Game\nAPG: Assists Per Game\nRPG: Rebounds Per Game', \
-                         font = search_font, justify = "left", bg = colour_silver)
-Legend_details.grid(padx = (5, 100), pady = 5, row = 1, column = 1, sticky = 'w')
+Legend_details = Label(Selection_details, text = '\n*Statistics quoted per game', \
+                         font = sig_13, justify = "left", bg = colour_silver)
+Legend_details.grid(padx = (5, 100), pady = 5, row = 8, column = 1, columnspan = 3, sticky = 'w')
 
 Photo_p1 = ImageTk.PhotoImage(file ='NBA_logo.png')
 Profile_p1 = Label(Selection_details, image = Photo_p1, border = 0)
